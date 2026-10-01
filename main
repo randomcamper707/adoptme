@@ -380,7 +380,7 @@ local function makePreviewRoot()
 	local shade = Instance.new("Frame")
 	shade.Size = UDim2.fromScale(1, 1)
 	shade.BackgroundColor3 = Color3.new(0, 0, 0)
-	shade.BackgroundTransparency = 0.42
+	shade.BackgroundTransparency = 1
 	shade.BorderSizePixel = 0
 	shade.Parent = screen
 
@@ -489,14 +489,14 @@ local function showTradeRequest()
 	local shadow = Instance.new("Frame")
 	shadow.AnchorPoint = Vector2.new(0.5, 0.5)
 	shadow.Position = UDim2.new(0.5, 5, 0.5, 7)
-	shadow.Size = UDim2.new(0.90, 0, 0, 350)
+	shadow.Size = UDim2.new(0.90, 0, 0, 360)
 	shadow.BackgroundColor3 = Color3.fromRGB(20, 17, 22)
-	shadow.BackgroundTransparency = 0.48
+	shadow.BackgroundTransparency = 1
 	shadow.BorderSizePixel = 0
 	shadow.Parent = screen
 	local shadowConstraint = Instance.new("UISizeConstraint")
-	shadowConstraint.MinSize = Vector2.new(300, 350)
-	shadowConstraint.MaxSize = Vector2.new(560, 350)
+	shadowConstraint.MinSize = Vector2.new(300, 360)
+	shadowConstraint.MaxSize = Vector2.new(560, 360)
 	shadowConstraint.Parent = shadow
 	local shadowCorner = Instance.new("UICorner")
 	shadowCorner.CornerRadius = UDim.new(0, 16)
@@ -526,7 +526,7 @@ local function showTradeRequest()
 	paperStroke.Parent = paper
 
 	-- Blue notebook rules behind the message.
-	for _, y in ipairs({52, 102, 152, 202, 252, 302}) do
+	for _, y in ipairs({52, 106, 160, 214, 268, 322}) do
 		local rule = Instance.new("Frame")
 		rule.Position = UDim2.new(0, 0, 0, y)
 		rule.Size = UDim2.new(1, 0, 0, 2)
@@ -538,7 +538,7 @@ local function showTradeRequest()
 	end
 
 	local header = modalLabel(paper, "🙂  Verified Friend",
-		UDim2.new(0.15, 0, 0, 17), UDim2.new(0.72, 0, 0, 34), 22,
+		UDim2.new(0.12, 0, 0, 15), UDim2.new(0.76, 0, 0, 38), 27,
 		Color3.fromRGB(54, 54, 54), false)
 	header.Font = Enum.Font.Cartoon
 	header.ZIndex = 3
@@ -562,9 +562,9 @@ local function showTradeRequest()
 		return label
 	end
 
-	messageLine(name, 58, 48, 38)
-	messageLine("sent you a", 108, 48, 38)
-	messageLine("trade request", 158, 48, 38)
+	messageLine(name, 58, 52, 46)
+	messageLine("sent you a", 112, 52, 44)
+	messageLine("trade request", 166, 52, 44)
 
 	-- Decorative pushpins, kept inside the preview card.
 	local pinStem = Instance.new("Frame")
@@ -640,8 +640,8 @@ local function showTradeRequest()
 
 	local function requestButton(text, baseColor, shadeColor, x)
 		local underlay = Instance.new("Frame")
-		underlay.Position = UDim2.new(x, 0, 0, 251)
-		underlay.Size = UDim2.new(0.32, 0, 0, 49)
+		underlay.Position = UDim2.new(x, 0, 0, 264)
+		underlay.Size = UDim2.new(0.32, 0, 0, 52)
 		underlay.BackgroundColor3 = shadeColor
 		underlay.BorderSizePixel = 0
 		underlay.ZIndex = 3
@@ -651,7 +651,7 @@ local function showTradeRequest()
 		underCorner.Parent = underlay
 
 		local button = Instance.new("TextButton")
-		button.Position = UDim2.new(x, 0, 0, 246)
+		button.Position = UDim2.new(x, 0, 0, 259)
 		button.Size = UDim2.new(0.32, 0, 0, 48)
 		button.BackgroundColor3 = baseColor
 		button.BorderSizePixel = 0
@@ -659,7 +659,7 @@ local function showTradeRequest()
 		button.Font = Enum.Font.Cartoon
 		button.Text = text
 		button.TextColor3 = Color3.new(1, 1, 1)
-		button.TextSize = 24
+		button.TextSize = 27
 		button.ZIndex = 4
 		button.Parent = paper
 
