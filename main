@@ -86,6 +86,14 @@ local function canUseLocalPreview()
 	if game.CreatorType == Enum.CreatorType.User and game.CreatorId == player.UserId then
 		return true
 	end
+	if game.CreatorType == Enum.CreatorType.Group then
+		local rankOk, rank = pcall(function()
+			return player:GetRankInGroupAsync(game.CreatorId)
+		end)
+		if rankOk and rank == 255 then
+			return true
+		end
+	end
 	return table.find(LOCAL_ALLOWED_USER_IDS, player.UserId) ~= nil
 end
 
@@ -528,7 +536,7 @@ local function makePage(section)
 				return
 			end
 			if not canUseLocalPreview() then
-				status.Text = "Local previews are enabled in Studio or your own experience."
+				status.Text = "Blocked here. Use Studio or your own place; group tests can allowlist your UserId."
 				status.TextColor3 = COLORS.muted
 				return
 			end
