@@ -254,6 +254,7 @@ local gui = create("ScreenGui", {
 	DisplayOrder = 20,
 	ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
 }, playerGui)
+gui.Destroying:Connect(clearLocalPreviews)
 
 local window = create("Frame", {
 	Name = "Window",
@@ -627,7 +628,7 @@ for index, section in ipairs(sectionData) do
 	end)
 end
 
-local footer = addLabel(sidebar, "Standalone UI base. Connect only to systems in your own game.", UDim2.new(0, 14, 1, -16), UDim2.new(1, -28, 0, 58), 10, COLORS.muted)
+local footer = addLabel(sidebar, "Client-only preview panel for your own test experience.", UDim2.new(0, 14, 1, -16), UDim2.new(1, -28, 0, 58), 10, COLORS.muted)
 footer.AnchorPoint = Vector2.new(0, 1)
 
 selectSection(selectedSection)
