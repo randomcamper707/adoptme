@@ -113,13 +113,38 @@ accent.BorderSizePixel = 0
 accent.Parent = panel
 
 -- Blank strip for dragging the panel.
-local dragHandle = Instance.new("Frame")
+local dragHandle = Instance.new("TextButton")
 dragHandle.Name = "DragHandle"
-dragHandle.Position = UDim2.new(0, 0, 0, 3)
-dragHandle.Size = UDim2.new(1, 0, 0, 20)
-dragHandle.BackgroundTransparency = 1
+dragHandle.Position = UDim2.new(0, 6, 0, 4)
+dragHandle.Size = UDim2.new(1, -12, 0, 19)
+dragHandle.BackgroundColor3 = Color3.fromRGB(48, 48, 59)
+dragHandle.BorderSizePixel = 0
+dragHandle.AutoButtonColor = false
+dragHandle.Font = Enum.Font.GothamBold
+dragHandle.Text = "DRAG PANEL"
+dragHandle.TextColor3 = COLORS.muted
+dragHandle.TextSize = 9
 dragHandle.Active = true
 dragHandle.Parent = panel
+
+local dragCorner = Instance.new("UICorner")
+dragCorner.CornerRadius = UDim.new(0, 4)
+dragCorner.Parent = dragHandle
+
+local dragStroke = Instance.new("UIStroke")
+dragStroke.Color = COLORS.border
+dragStroke.Thickness = 1
+dragStroke.Parent = dragHandle
+
+dragHandle.MouseEnter:Connect(function()
+	dragHandle.BackgroundColor3 = Color3.fromRGB(61, 61, 75)
+	dragHandle.TextColor3 = COLORS.text
+end)
+
+dragHandle.MouseLeave:Connect(function()
+	dragHandle.BackgroundColor3 = Color3.fromRGB(48, 48, 59)
+	dragHandle.TextColor3 = COLORS.muted
+end)
 
 local dragging = false
 local dragStart
