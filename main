@@ -1,1 +1,302 @@
+-- Avatar Morpher UI only.
+-- Morph and Reset are intentionally visual placeholders; no game actions are connected.
 
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local existing = playerGui:FindFirstChild("AvatarMorpherUI")
+if existing then
+    existing:Destroy()
+end
+
+local screen = Instance.new("ScreenGui")
+screen.Name = "AvatarMorpherUI"
+screen.ResetOnSpawn = false
+screen.IgnoreGuiInset = true
+screen.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+screen.Parent = playerGui
+
+local panel = Instance.new("Frame")
+panel.Name = "MorpherPanel"
+panel.Size = UDim2.fromOffset(332, 252)
+panel.Position = UDim2.new(0.5, -166, 0.5, -126)
+panel.BackgroundColor3 = Color3.fromRGB(18, 14, 25)
+panel.BackgroundTransparency = 0.10
+panel.BorderSizePixel = 0
+panel.Parent = screen
+
+local panelCorner = Instance.new("UICorner")
+panelCorner.CornerRadius = UDim.new(0, 11)
+panelCorner.Parent = panel
+
+local panelStroke = Instance.new("UIStroke")
+panelStroke.Color = Color3.fromRGB(91, 63, 126)
+panelStroke.Transparency = 0.52
+panelStroke.Thickness = 1
+panelStroke.Parent = panel
+
+local topAccent = Instance.new("Frame")
+topAccent.Name = "TopAccent"
+topAccent.Size = UDim2.new(1, -2, 0, 3)
+topAccent.Position = UDim2.fromOffset(1, 1)
+topAccent.BackgroundColor3 = Color3.fromRGB(151, 82, 255)
+topAccent.BorderSizePixel = 0
+topAccent.Parent = panel
+
+local accentGradient = Instance.new("UIGradient")
+accentGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(126, 61, 239)),
+    ColorSequenceKeypoint.new(0.52, Color3.fromRGB(208, 80, 245)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(101, 68, 230)),
+})
+accentGradient.Parent = topAccent
+
+local title = Instance.new("TextLabel")
+title.Name = "Title"
+title.BackgroundTransparency = 1
+title.Position = UDim2.fromOffset(5, 10)
+title.Size = UDim2.new(1, -48, 0, 18)
+title.Font = Enum.Font.GothamBold
+title.Text = "Avatar Morpher"
+title.TextColor3 = Color3.fromRGB(246, 240, 252)
+title.TextSize = 13
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = panel
+
+local subtitle = Instance.new("TextLabel")
+subtitle.Name = "Subtitle"
+subtitle.BackgroundTransparency = 1
+subtitle.Position = UDim2.fromOffset(5, 27)
+subtitle.Size = UDim2.new(1, -55, 0, 13)
+subtitle.Font = Enum.Font.Gotham
+subtitle.Text = "Change your avatar's look"
+subtitle.TextColor3 = Color3.fromRGB(164, 153, 177)
+subtitle.TextSize = 9
+subtitle.TextXAlignment = Enum.TextXAlignment.Left
+subtitle.Parent = panel
+
+local close = Instance.new("TextButton")
+close.Name = "Close"
+close.Position = UDim2.new(1, -31, 0, 9)
+close.Size = UDim2.fromOffset(25, 27)
+close.BackgroundColor3 = Color3.fromRGB(43, 32, 54)
+close.BorderSizePixel = 0
+close.AutoButtonColor = false
+close.Font = Enum.Font.GothamMedium
+close.Text = "×"
+close.TextColor3 = Color3.fromRGB(236, 226, 245)
+close.TextSize = 16
+close.Parent = panel
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = close
+close.MouseButton1Click:Connect(function()
+    screen:Destroy()
+end)
+
+local divider = Instance.new("Frame")
+divider.Name = "HeaderDivider"
+divider.Position = UDim2.fromOffset(0, 39)
+divider.Size = UDim2.new(1, 0, 0, 1)
+divider.BackgroundColor3 = Color3.fromRGB(78, 59, 93)
+divider.BackgroundTransparency = 0.56
+divider.BorderSizePixel = 0
+divider.Parent = panel
+
+local avatarBack = Instance.new("Frame")
+avatarBack.Name = "AvatarPreview"
+avatarBack.Position = UDim2.fromOffset(3, 46)
+avatarBack.Size = UDim2.fromOffset(77, 78)
+avatarBack.BackgroundColor3 = Color3.fromRGB(46, 35, 55)
+avatarBack.BorderSizePixel = 0
+avatarBack.Parent = panel
+
+local avatarCorner = Instance.new("UICorner")
+avatarCorner.CornerRadius = UDim.new(0, 9)
+avatarCorner.Parent = avatarBack
+
+local avatarImage = Instance.new("ImageLabel")
+avatarImage.Name = "AvatarImage"
+avatarImage.BackgroundTransparency = 1
+avatarImage.Position = UDim2.fromOffset(3, 3)
+avatarImage.Size = UDim2.new(1, -6, 1, -6)
+avatarImage.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
+avatarImage.ScaleType = Enum.ScaleType.Crop
+avatarImage.Parent = avatarBack
+
+local avatarImageCorner = Instance.new("UICorner")
+avatarImageCorner.CornerRadius = UDim.new(0, 7)
+avatarImageCorner.Parent = avatarImage
+
+local usernameLabel = Instance.new("TextLabel")
+usernameLabel.Name = "UsernameLabel"
+usernameLabel.BackgroundTransparency = 1
+usernameLabel.Position = UDim2.fromOffset(91, 48)
+usernameLabel.Size = UDim2.new(1, -101, 0, 14)
+usernameLabel.Font = Enum.Font.GothamBold
+usernameLabel.Text = "ROBLOX USERNAME"
+usernameLabel.TextColor3 = Color3.fromRGB(178, 164, 190)
+usernameLabel.TextSize = 8
+usernameLabel.TextXAlignment = Enum.TextXAlignment.Left
+usernameLabel.Parent = panel
+
+local usernameBox = Instance.new("TextBox")
+usernameBox.Name = "UsernameInput"
+usernameBox.Position = UDim2.fromOffset(91, 70)
+usernameBox.Size = UDim2.new(1, -101, 0, 43)
+usernameBox.BackgroundColor3 = Color3.fromRGB(43, 30, 56)
+usernameBox.BackgroundTransparency = 0.08
+usernameBox.BorderSizePixel = 0
+usernameBox.ClearTextOnFocus = false
+usernameBox.Font = Enum.Font.Gotham
+usernameBox.PlaceholderText = "Enter exact username"
+usernameBox.PlaceholderColor3 = Color3.fromRGB(177, 160, 191)
+usernameBox.Text = ""
+usernameBox.TextColor3 = Color3.fromRGB(246, 240, 252)
+usernameBox.TextSize = 11
+usernameBox.Parent = panel
+
+local inputCorner = Instance.new("UICorner")
+inputCorner.CornerRadius = UDim.new(0, 8)
+inputCorner.Parent = usernameBox
+
+local function makeButton(name, label, position, size, baseColor)
+    local button = Instance.new("TextButton")
+    button.Name = name
+    button.Position = position
+    button.Size = size
+    button.BackgroundColor3 = baseColor
+    button.BorderSizePixel = 0
+    button.AutoButtonColor = false
+    button.Font = Enum.Font.GothamBold
+    button.Text = label
+    button.TextColor3 = Color3.fromRGB(250, 247, 252)
+    button.TextSize = 10
+    button.Parent = panel
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 9)
+    corner.Parent = button
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(132, 105, 151)
+    stroke.Transparency = 0.77
+    stroke.Thickness = 1
+    stroke.Parent = button
+
+    local original = baseColor
+    button.MouseEnter:Connect(function()
+        button.BackgroundColor3 = Color3.fromRGB(72, 48, 91)
+    end)
+    button.MouseLeave:Connect(function()
+        button.BackgroundColor3 = original
+    end)
+
+    return button
+end
+
+local morphButton = makeButton(
+    "MorphButton",
+    "MORPH",
+    UDim2.fromOffset(3, 127),
+    UDim2.new(0.61, -4, 0, 39),
+    Color3.fromRGB(43, 30, 56)
+)
+local resetButton = makeButton(
+    "ResetButton",
+    "RESET",
+    UDim2.new(0.63, 0, 0, 127),
+    UDim2.new(0.37, -4, 0, 39),
+    Color3.fromRGB(43, 30, 56)
+)
+
+local roleLabel = Instance.new("TextLabel")
+roleLabel.Name = "RoleLabel"
+roleLabel.BackgroundTransparency = 1
+roleLabel.Position = UDim2.fromOffset(4, 174)
+roleLabel.Size = UDim2.new(1, -8, 0, 13)
+roleLabel.Font = Enum.Font.GothamBold
+roleLabel.Text = "OVERHEAD ROLE"
+roleLabel.TextColor3 = Color3.fromRGB(180, 166, 193)
+roleLabel.TextSize = 8
+roleLabel.TextXAlignment = Enum.TextXAlignment.Left
+roleLabel.Parent = panel
+
+local roleButtons = {}
+local roleNames = {"OWNER", "CO-OWNER", "ADMIN"}
+local selectedRole = "OWNER"
+
+local function updateRoleButtons()
+    for roleName, button in pairs(roleButtons) do
+        local active = roleName == selectedRole
+        button.BackgroundColor3 = active and Color3.fromRGB(255, 65, 70) or Color3.fromRGB(43, 30, 56)
+        button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end
+end
+
+for index, roleName in ipairs(roleNames) do
+    local xScale = (index - 1) / 3
+    local button = makeButton(
+        roleName:gsub("%W", "") .. "RoleButton",
+        roleName,
+        UDim2.new(xScale, 3, 0, 193),
+        UDim2.new(1 / 3, -6, 0, 31),
+        Color3.fromRGB(43, 30, 56)
+    )
+    roleButtons[roleName] = button
+    button.MouseButton1Click:Connect(function()
+        selectedRole = roleName
+        updateRoleButtons()
+    end)
+end
+updateRoleButtons()
+
+local footer = Instance.new("TextLabel")
+footer.Name = "FooterNote"
+footer.BackgroundTransparency = 1
+footer.Position = UDim2.fromOffset(4, 228)
+footer.Size = UDim2.new(1, -8, 0, 14)
+footer.Font = Enum.Font.Gotham
+footer.Text = "Changes your avatar appearance locally."
+footer.TextColor3 = Color3.fromRGB(171, 161, 177)
+footer.TextSize = 8
+footer.TextXAlignment = Enum.TextXAlignment.Left
+footer.Parent = panel
+
+-- Dragging is limited to the panel header.
+local dragging = false
+local dragStart
+local panelStart
+
+local function updateDrag(input)
+    local delta = input.Position - dragStart
+    panel.Position = UDim2.new(
+        panelStart.X.Scale,
+        panelStart.X.Offset + delta.X,
+        panelStart.Y.Scale,
+        panelStart.Y.Offset + delta.Y
+    )
+end
+
+panel.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 and input.Position.Y <= panel.AbsolutePosition.Y + 40 then
+        dragging = true
+        dragStart = input.Position
+        panelStart = panel.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        updateDrag(input)
+    end
+end)
