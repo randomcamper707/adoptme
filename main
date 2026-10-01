@@ -281,7 +281,7 @@ local function addField(labelText, defaultValue)
 	return box
 end
 
-addField("Partner Username", "endeavor3313")
+local partnerNameBox = addField("Partner Username", "endeavor3313")
 addField("Accept Delay (s)", "0.2")
 addField("Confirm Delay (s)", "0.3")
 addField("Spectator Count", "4")
@@ -291,7 +291,7 @@ addField("Request Delay (s)", "0")
 makeButton(content, "🔴  Auto Spectate: OFF", COLORS.red)
 makeButton(content, "Add Random Item", COLORS.purple)
 makeButton(content, "Clear Trade", COLORS.red)
-makeButton(content, "Start Trade", Color3.fromRGB(44, 77, 57))
+local startTradeButton = makeButton(content, "Start Trade", Color3.fromRGB(44, 77, 57))
 makeButton(content, "Block Player", COLORS.red)
 makeButton(content, "Make Partner Accept", COLORS.green)
 makeButton(content, "Toggle Noclip: ON", COLORS.blue)
@@ -325,3 +325,189 @@ makeTab(petOptions, "Mega", 0.29, false)
 makeButton(content, "Spawn fake player", COLORS.blue)
 makeButton(content, "Spawn with random pet: false", COLORS.red, 20)
 makeButton(content, "Delete all fake players", COLORS.orange, 20)
+
+-- Display-only trade preview. No Roblox trade APIs or game actions are called.
+local activeTradePreview
+
+local function modalLabel(parent, text, position, size, textSize, color, bold)
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.Position = position
+	label.Size = size
+	label.Font = bold and Enum.Font.GothamBold or Enum.Font.Gotham
+	label.Text = text
+	label.TextColor3 = color or COLORS.text
+	label.TextSize = textSize or 12
+	label.TextWrapped = true
+	label.TextXAlignment = Enum.TextXAlignment.Center
+	label.TextYAlignment = Enum.TextYAlignment.Center
+	label.Parent = parent
+	return label
+end
+
+local function modalButton(parent, text, color, position, size)
+	local button = Instance.new("TextButton")
+	button.Position = position
+	button.Size = size
+	button.BackgroundColor3 = color
+	button.BorderSizePixel = 0
+	button.AutoButtonColor = true
+	button.Font = Enum.Font.GothamBold
+	button.Text = text
+	button.TextColor3 = Color3.new(1, 1, 1)
+	button.TextSize = 12
+	button.Parent = parent
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 5)
+	corner.Parent = button
+	return button
+end
+
+local function makePreviewRoot()
+	if activeTradePreview then
+		activeTradePreview:Destroy()
+	end
+
+	local screen = Instance.new("ScreenGui")
+	screen.Name = "TradeVisualPreview"
+	screen.DisplayOrder = 20
+	screen.IgnoreGuiInset = true
+	screen.ResetOnSpawn = false
+	screen.Parent = playerGui
+	activeTradePreview = screen
+
+	local shade = Instance.new("Frame")
+	shade.Size = UDim2.fromScale(1, 1)
+	shade.BackgroundColor3 = Color3.new(0, 0, 0)
+	shade.BackgroundTransparency = 0.42
+	shade.BorderSizePixel = 0
+	shade.Parent = screen
+
+	return screen
+end
+
+local function makePreviewCard(parent, height)
+	local card = Instance.new("Frame")
+	card.AnchorPoint = Vector2.new(0.5, 0.5)
+	card.Position = UDim2.fromScale(0.5, 0.5)
+	card.Size = UDim2.new(0.88, 0, 0, height)
+	card.BackgroundColor3 = Color3.fromRGB(239, 237, 228)
+	card.BorderSizePixel = 0
+	card.Parent = parent
+
+	local constraint = Instance.new("UISizeConstraint")
+	constraint.MinSize = Vector2.new(290, height)
+	constraint.MaxSize = Vector2.new(560, height)
+	constraint.Parent = card
+
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 9)
+	corner.Parent = card
+
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = Color3.fromRGB(226, 197, 84)
+	stroke.Thickness = 2
+	stroke.Parent = card
+
+	return card
+end
+
+local function showTradeWindow(partnerName)
+	local screen = makePreviewRoot()
+	local card = makePreviewCard(screen, 320)
+
+	modalLabel(card, "TRADE PREVIEW  •  VISUAL ONLY",
+		UDim2.new(0, 12, 0, 8), UDim2.new(1, -24, 0, 24), 12,
+		Color3.fromRGB(91, 78, 34), true)
+	modalLabel(card, "You", UDim2.new(0.04, 0, 0, 39), UDim2.new(0.40, 0, 0, 22),
+		11, Color3.fromRGB(55, 55, 55), true)
+	modalLabel(card, partnerName, UDim2.new(0.56, 0, 0, 39), UDim2.new(0.40, 0, 0, 22),
+		11, Color3.fromRGB(55, 55, 55), true)
+
+	local function addItemGrid(xScale)
+		local grid = Instance.new("Frame")
+		grid.Position = UDim2.new(xScale, 0, 0, 64)
+		grid.Size = UDim2.new(0.39, 0, 0, 166)
+		grid.BackgroundColor3 = Color3.fromRGB(205, 207, 198)
+		grid.BorderSizePixel = 1
+		grid.BorderColor3 = Color3.fromRGB(120, 122, 115)
+		grid.Parent = card
+
+		for index = 1, 9 do
+			local row = math.floor((index - 1) / 3)
+			local column = (index - 1) % 3
+			local slot = Instance.new("Frame")
+			slot.Position = UDim2.new(0.025 + column * 0.325, 0, 0.025 + row * 0.325, 0)
+			slot.Size = UDim2.new(0.30, 0, 0.30, 0)
+			slot.BackgroundColor3 = (xScale < 0.5 and index == 1)
+				and Color3.fromRGB(66, 194, 75)
+				or Color3.fromRGB(170, 174, 166)
+			slot.BorderSizePixel = 1
+			slot.BorderColor3 = Color3.fromRGB(117, 120, 112)
+			slot.Parent = grid
+
+			if xScale < 0.5 and index == 1 then
+				modalLabel(slot, "+", UDim2.fromScale(0, 0), UDim2.fromScale(1, 1),
+					24, Color3.new(1, 1, 1), true)
+			end
+		end
+	end
+
+	addItemGrid(0.04)
+	addItemGrid(0.57)
+	modalLabel(card, "⇄", UDim2.new(0.44, 0, 0, 116), UDim2.new(0.12, 0, 0, 42),
+		28, Color3.fromRGB(65, 65, 65), true)
+
+	local status = modalLabel(card, "This is a visual preview; no items are exchanged.",
+		UDim2.new(0.04, 0, 0, 235), UDim2.new(0.92, 0, 0, 25), 10,
+		Color3.fromRGB(91, 91, 91), false)
+
+	local closeButton = modalButton(card, "Close", Color3.fromRGB(190, 54, 62),
+		UDim2.new(0.58, 0, 1, -42), UDim2.new(0.17, 0, 0, 30))
+	local acceptButton = modalButton(card, "Accept (Preview)", Color3.fromRGB(65, 153, 79),
+		UDim2.new(0.77, 0, 1, -42), UDim2.new(0.19, 0, 0, 30))
+
+	closeButton.Activated:Connect(function()
+		if activeTradePreview then activeTradePreview:Destroy() end
+	end)
+	acceptButton.Activated:Connect(function()
+		status.Text = "Accepted in preview only — no real trade was made."
+		acceptButton.Text = "Accepted"
+		acceptButton.Active = false
+		acceptButton.AutoButtonColor = false
+	end)
+end
+
+local function showTradeRequest()
+	local name = partnerNameBox.Text
+	if name == "" then name = "Your friend" end
+
+	local screen = makePreviewRoot()
+	local card = makePreviewCard(screen, 190)
+
+	modalLabel(card, "TRADE REQUEST PREVIEW",
+		UDim2.new(0, 12, 0, 12), UDim2.new(1, -24, 0, 25), 13,
+		Color3.fromRGB(91, 78, 34), true)
+	modalLabel(card, name .. " sent you a trade request",
+		UDim2.new(0.06, 0, 0, 50), UDim2.new(0.88, 0, 0, 50), 16,
+		Color3.fromRGB(48, 48, 48), true)
+	modalLabel(card, "Visual preview only",
+		UDim2.new(0.06, 0, 0, 101), UDim2.new(0.88, 0, 0, 20), 10,
+		Color3.fromRGB(105, 105, 105), false)
+
+	local decline = modalButton(card, "Decline", Color3.fromRGB(202, 47, 60),
+		UDim2.new(0.16, 0, 1, -47), UDim2.new(0.31, 0, 0, 32))
+	local accept = modalButton(card, "Accept", Color3.fromRGB(58, 170, 84),
+		UDim2.new(0.53, 0, 1, -47), UDim2.new(0.31, 0, 0, 32))
+
+	decline.Activated:Connect(function()
+		if activeTradePreview then activeTradePreview:Destroy() end
+	end)
+	accept.Activated:Connect(function()
+		showTradeWindow(name)
+	end)
+end
+
+startTradeButton.Activated:Connect(showTradeRequest)
+
