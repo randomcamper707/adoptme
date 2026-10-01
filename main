@@ -66,9 +66,9 @@ local MAX_PREVIEWS = 6
 local SPAWN_COOLDOWN = 1
 local FIVE_INCHES_IN_STUDS = 5 / 11.02
 
--- Add your UserId here if your own test experience is group-owned.
--- Studio and user-owned experiences are allowed automatically.
-local LOCAL_ALLOWED_USER_IDS = {}
+-- Add your own group-owned test PlaceId here if you aren't the group owner.
+-- Studio, user-owned places, and group owners are allowed automatically.
+local LOCAL_ALLOWED_PLACE_IDS = {}
 
 -- Optional Roblox UserIds to include in the random-avatar pool.
 -- Players in the current server are also included automatically.
@@ -94,7 +94,7 @@ local function canUseLocalPreview()
 			return true
 		end
 	end
-	return table.find(LOCAL_ALLOWED_USER_IDS, player.UserId) ~= nil
+	return table.find(LOCAL_ALLOWED_PLACE_IDS, game.PlaceId) ~= nil
 end
 
 local function randomDescription()
@@ -536,7 +536,7 @@ local function makePage(section)
 				return
 			end
 			if not canUseLocalPreview() then
-				status.Text = "Blocked here. Use Studio or your own place; group tests can allowlist your UserId."
+				status.Text = "This place isn't allowed. Use your own place or add its PlaceId to LOCAL_ALLOWED_PLACE_IDS."
 				status.TextColor3 = COLORS.muted
 				return
 			end
