@@ -489,14 +489,14 @@ local function showTradeRequest()
 	local shadow = Instance.new("Frame")
 	shadow.AnchorPoint = Vector2.new(0.5, 0.5)
 	shadow.Position = UDim2.new(0.5, 5, 0.5, 7)
-	shadow.Size = UDim2.new(0.90, 0, 0, 360)
+	shadow.Size = UDim2.new(0.88, 0, 0, 300)
 	shadow.BackgroundColor3 = Color3.fromRGB(20, 17, 22)
 	shadow.BackgroundTransparency = 1
 	shadow.BorderSizePixel = 0
 	shadow.Parent = screen
 	local shadowConstraint = Instance.new("UISizeConstraint")
-	shadowConstraint.MinSize = Vector2.new(300, 360)
-	shadowConstraint.MaxSize = Vector2.new(560, 360)
+	shadowConstraint.MinSize = Vector2.new(300, 300)
+	shadowConstraint.MaxSize = Vector2.new(520, 300)
 	shadowConstraint.Parent = shadow
 	local shadowCorner = Instance.new("UICorner")
 	shadowCorner.CornerRadius = UDim.new(0, 16)
@@ -526,7 +526,7 @@ local function showTradeRequest()
 	paperStroke.Parent = paper
 
 	-- Blue notebook rules behind the message.
-	for _, y in ipairs({52, 106, 160, 214, 268, 322}) do
+	for _, y in ipairs({44, 96, 148, 200, 252}) do
 		local rule = Instance.new("Frame")
 		rule.Position = UDim2.new(0, 0, 0, y)
 		rule.Size = UDim2.new(1, 0, 0, 2)
@@ -538,7 +538,7 @@ local function showTradeRequest()
 	end
 
 	local header = modalLabel(paper, "🙂  Verified Friend",
-		UDim2.new(0.12, 0, 0, 15), UDim2.new(0.76, 0, 0, 38), 27,
+		UDim2.new(0.12, 0, 0, 7), UDim2.new(0.76, 0, 0, 38), 26,
 		Color3.fromRGB(54, 54, 54), false)
 	header.Font = Enum.Font.Cartoon
 	header.ZIndex = 3
@@ -562,9 +562,9 @@ local function showTradeRequest()
 		return label
 	end
 
-	messageLine(name, 58, 52, 46)
-	messageLine("sent you a", 112, 52, 44)
-	messageLine("trade request", 166, 52, 44)
+	messageLine(name, 50, 50, 44)
+	messageLine("sent you a", 100, 50, 44)
+	messageLine("trade request", 150, 50, 44)
 
 	-- Decorative pushpins, kept inside the preview card.
 	local pinStem = Instance.new("Frame")
@@ -640,8 +640,8 @@ local function showTradeRequest()
 
 	local function requestButton(text, baseColor, shadeColor, x)
 		local underlay = Instance.new("Frame")
-		underlay.Position = UDim2.new(x, 0, 0, 264)
-		underlay.Size = UDim2.new(0.32, 0, 0, 52)
+		underlay.Position = UDim2.new(x, 0, 0, 235)
+		underlay.Size = UDim2.new(0.355, 0, 0, 50)
 		underlay.BackgroundColor3 = shadeColor
 		underlay.BorderSizePixel = 0
 		underlay.ZIndex = 3
@@ -651,7 +651,7 @@ local function showTradeRequest()
 		underCorner.Parent = underlay
 
 		local button = Instance.new("TextButton")
-		button.Position = UDim2.new(x, 0, 0, 259)
+		button.Position = UDim2.new(x, 0, 0, 228)
 		button.Size = UDim2.new(0.32, 0, 0, 48)
 		button.BackgroundColor3 = baseColor
 		button.BorderSizePixel = 0
@@ -674,9 +674,9 @@ local function showTradeRequest()
 	end
 
 	local decline = requestButton("Decline", Color3.fromRGB(227, 37, 57),
-		Color3.fromRGB(168, 25, 43), 0.12)
+		Color3.fromRGB(151, 17, 37), 0.14)
 	local accept = requestButton("Accept", Color3.fromRGB(65, 204, 83),
-		Color3.fromRGB(43, 155, 59), 0.56)
+		Color3.fromRGB(30, 133, 53), 0.51)
 
 	decline.Activated:Connect(function()
 		if activeTradePreview then activeTradePreview:Destroy() end
