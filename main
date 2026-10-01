@@ -4,6 +4,7 @@
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
+local UserInputService = game:GetService("UserInputService")
 
 local oldGui = playerGui:FindFirstChild("CartiScriptsUI")
 if oldGui then
@@ -111,21 +112,53 @@ accent.BackgroundColor3 = Color3.fromRGB(221, 220, 58)
 accent.BorderSizePixel = 0
 accent.Parent = panel
 
-local title = makeLabel(
-	panel,
-	"t.me/cartiscripts",
-	UDim2.new(1, -12, 0, 25),
-	UDim2.new(0, 6, 0, 3),
-	12,
-	COLORS.text,
-	true
-)
-title.TextXAlignment = Enum.TextXAlignment.Center
+-- Blank strip for dragging the panel.
+local dragHandle = Instance.new("Frame")
+dragHandle.Name = "DragHandle"
+dragHandle.Position = UDim2.new(0, 0, 0, 3)
+dragHandle.Size = UDim2.new(1, 0, 0, 20)
+dragHandle.BackgroundTransparency = 1
+dragHandle.Active = true
+dragHandle.Parent = panel
+
+local dragging = false
+local dragStart
+local startPosition
+
+dragHandle.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+		or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPosition = panel.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if not dragging then return end
+
+	if input.UserInputType == Enum.UserInputType.MouseMovement
+		or input.UserInputType == Enum.UserInputType.Touch then
+		local delta = input.Position - dragStart
+		panel.Position = UDim2.new(
+			startPosition.X.Scale,
+			startPosition.X.Offset + delta.X,
+			startPosition.Y.Scale,
+			startPosition.Y.Offset + delta.Y
+		)
+	end
+end)
 
 -- Main tabs
 local mainTabs = Instance.new("Frame")
 mainTabs.BackgroundTransparency = 1
-mainTabs.Position = UDim2.new(0, 4, 0, 30)
+mainTabs.Position = UDim2.new(0, 4, 0, 26)
 mainTabs.Size = UDim2.new(1, -8, 0, 27)
 mainTabs.Parent = panel
 
@@ -142,7 +175,7 @@ makeTab(mainTabs, "♧ Pets", 0.33, false)
 -- Subtabs
 local subTabs = Instance.new("Frame")
 subTabs.BackgroundTransparency = 1
-subTabs.Position = UDim2.new(0, 4, 0, 61)
+subTabs.Position = UDim2.new(0, 4, 0, 57)
 subTabs.Size = UDim2.new(1, -8, 0, 27)
 subTabs.Parent = panel
 
@@ -159,8 +192,8 @@ makeTab(subTabs, "▣ Inventory", 0.33, false)
 -- Scrollable control area
 local content = Instance.new("ScrollingFrame")
 content.Name = "Controls"
-content.Position = UDim2.new(0, 4, 0, 93)
-content.Size = UDim2.new(1, -8, 1, -97)
+content.Position = UDim2.new(0, 4, 0, 89)
+content.Size = UDim2.new(1, -8, 1, -93)
 content.BackgroundTransparency = 1
 content.BorderSizePixel = 0
 content.ScrollBarThickness = 3
