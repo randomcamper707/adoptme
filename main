@@ -338,9 +338,24 @@ local dragHandle = create("TextButton", {
 	Text = "",
 	ZIndex = 5,
 }, header)
+local dragHint = create("TextLabel", {
+	Name = "DragHint",
+	Position = UDim2.new(1, -118, 0, 20),
+	Size = UDim2.fromOffset(48, 22),
+	BackgroundColor3 = COLORS.panelLight,
+	BackgroundTransparency = 0.15,
+	BorderSizePixel = 0,
+	Font = Enum.Font.GothamBold,
+	Text = "DRAG",
+	TextSize = 8,
+	TextColor3 = COLORS.muted,
+	ZIndex = 6,
+}, header)
+addCorner(dragHint, 7)
 
 local dragging = false
-local dragInput
+local dragInputType
+local touchDragInput
 local dragStart
 local startCenter
 
@@ -359,38 +374,54 @@ local function moveWindowTo(center)
 	)
 end
 
-dragHandle.InputBegan:Connect(function(input)
+UserInputService.InputBegan:Connect(function(input)
 	if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then
 		return
 	end
 
-	dragging = true
-	dragStart = input.Position
-	startCenter = window.AbsolutePosition + window.AbsoluteSize / 2
-	input.Changed:Connect(function()
-		if input.UserInputState == Enum.UserInputState.End then
-			dragging = false
-			dragInput = nil
-		end
-	end)
-end)
-
-dragHandle.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-		dragInput = input
+	local handlePosition = dragHandle.AbsolutePosition
+	local handleSize = dragHandle.AbsoluteSize
+	local pointer = Vector2.new(input.Position.X, input.Position.Y)
+	local insideHandle = pointer.X >= handlePosition.X
+		and pointer.X <= handlePosition.X + handleSize.X
+		and pointer.Y >= handlePosition.Y
+		and pointer.Y <= handlePosition.Y + handleSize.Y
+	if not insideHandle then
+		return
 	end
+
+	dragging = true
+	dragInputType = input.UserInputType
+	touchDragInput = input.UserInputType == Enum.UserInputType.Touch and input or nil
+	dragStart = pointer
+	startCenter = window.AbsolutePosition + window.AbsoluteSize / 2
 end)
 
 UserInputService.InputChanged:Connect(function(input)
-	if dragging and dragInput and input == dragInput then
-		moveWindowTo(startCenter + (input.Position - dragStart))
+	if not dragging then
+		return
+	end
+
+	local shouldMove = dragInputType == Enum.UserInputType.MouseButton1
+		and input.UserInputType == Enum.UserInputType.MouseMovement
+	if dragInputType == Enum.UserInputType.Touch and input == touchDragInput then
+		shouldMove = true
+	end
+	if shouldMove then
+		local pointer = Vector2.new(input.Position.X, input.Position.Y)
+		moveWindowTo(startCenter + (pointer - dragStart))
 	end
 end)
 
 UserInputService.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+	if dragInputType == Enum.UserInputType.MouseButton1 and input.UserInputType == Enum.UserInputType.MouseButton1 then
 		dragging = false
-		dragInput = nil
+		dragInputType = nil
+		touchDragInput = nil
+	elseif dragInputType == Enum.UserInputType.Touch and input == touchDragInput then
+		dragging = false
+		dragInputType = nil
+		touchDragInput = nil
 	end
 end)
 
