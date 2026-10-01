@@ -1,12 +1,15 @@
 -- Editable Roblox UI base
 -- Place this LocalScript in StarterPlayer > StarterPlayerScripts.
--- Feature buttons are placeholders for the game-specific functions you add later.
+-- This file contains only UI and tab navigation. Feature buttons are safe placeholders
+-- for the game-specific functions you decide to add later.
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
+local avatarRemote = ReplicatedStorage:WaitForChild("OwnGameAvatarSpawner", 15)
 
 local oldGui = playerGui:FindFirstChild("EditableGamePanel")
 if oldGui then
@@ -26,19 +29,15 @@ local COLORS = {
 
 local function create(className, properties, parent)
 	local object = Instance.new(className)
-
 	for property, value in pairs(properties) do
 		object[property] = value
 	end
-
 	object.Parent = parent
 	return object
 end
 
 local function addCorner(object, radius)
-	create("UICorner", {
-		CornerRadius = UDim.new(0, radius),
-	}, object)
+	create("UICorner", {CornerRadius = UDim.new(0, radius)}, object)
 end
 
 local function addStroke(object, color, transparency)
@@ -80,26 +79,18 @@ local window = create("Frame", {
 	BackgroundColor3 = COLORS.background,
 	BorderSizePixel = 0,
 }, gui)
-
 addCorner(window, 16)
 addStroke(window, COLORS.border, 0.15)
 
-local uiScale = create("UIScale", {
-	Scale = 1,
-}, window)
+local uiScale = create("UIScale", {Scale = 1}, window)
 
 local function fitWindow()
 	local camera = workspace.CurrentCamera
 	if not camera then
 		return
 	end
-
 	local viewport = camera.ViewportSize
-	uiScale.Scale = math.min(
-		1,
-		(viewport.X - 24) / 720,
-		(viewport.Y - 24) / 460
-	)
+	uiScale.Scale = math.min(1, (viewport.X - 24) / 720, (viewport.Y - 24) / 460)
 end
 
 local header = create("Frame", {
@@ -108,9 +99,7 @@ local header = create("Frame", {
 	BackgroundColor3 = COLORS.panel,
 	BorderSizePixel = 0,
 }, window)
-
 addCorner(header, 16)
-
 create("Frame", {
 	Position = UDim2.new(0, 0, 1, -16),
 	Size = UDim2.new(1, 0, 0, 16),
@@ -124,33 +113,14 @@ local accent = create("Frame", {
 	BackgroundColor3 = COLORS.purple,
 	BorderSizePixel = 0,
 }, header)
-
 addCorner(accent, 3)
-
 create("UIGradient", {
 	Color = ColorSequence.new(COLORS.purple, COLORS.cyan),
 	Rotation = 90,
 }, accent)
 
-addLabel(
-	header,
-	"MY GAME",
-	UDim2.fromOffset(38, 10),
-	UDim2.fromOffset(210, 24),
-	17,
-	COLORS.text,
-	Enum.Font.GothamBold
-)
-
-addLabel(
-	header,
-	"EDITABLE CONTROL PANEL",
-	UDim2.fromOffset(39, 34),
-	UDim2.fromOffset(220, 15),
-	9,
-	COLORS.muted,
-	Enum.Font.GothamMedium
-)
+addLabel(header, "MY GAME", UDim2.fromOffset(38, 10), UDim2.fromOffset(210, 24), 17, COLORS.text, Enum.Font.GothamBold)
+addLabel(header, "EDITABLE CONTROL PANEL", UDim2.fromOffset(39, 34), UDim2.fromOffset(220, 15), 9, COLORS.muted, Enum.Font.GothamMedium)
 
 local closeButton = create("TextButton", {
 	Name = "CloseButton",
@@ -165,9 +135,7 @@ local closeButton = create("TextButton", {
 	TextSize = 22,
 	TextColor3 = COLORS.text,
 }, header)
-
 addCorner(closeButton, 10)
-
 closeButton.Activated:Connect(function()
 	gui:Destroy()
 end)
@@ -180,15 +148,7 @@ local sidebar = create("Frame", {
 	BorderSizePixel = 0,
 }, window)
 
-addLabel(
-	sidebar,
-	"SECTIONS",
-	UDim2.fromOffset(16, 18),
-	UDim2.new(1, -32, 0, 20),
-	10,
-	COLORS.muted,
-	Enum.Font.GothamBold
-)
+addLabel(sidebar, "SECTIONS", UDim2.fromOffset(16, 18), UDim2.new(1, -32, 0, 20), 10, COLORS.muted, Enum.Font.GothamBold)
 
 local content = create("Frame", {
 	Name = "Content",
@@ -199,31 +159,11 @@ local content = create("Frame", {
 }, window)
 
 local sectionData = {
-	{
-		key = "Home",
-		title = "Home",
-		description = "Your editable game control panel is ready.",
-	},
-	{
-		key = "Players",
-		title = "Players",
-		description = "Add your own player tools here.",
-	},
-	{
-		key = "NPCs",
-		title = "NPCs",
-		description = "Add your own NPC features here.",
-	},
-	{
-		key = "Pets",
-		title = "Pets",
-		description = "Add your own pet features here.",
-	},
-	{
-		key = "Settings",
-		title = "Settings",
-		description = "Add your own settings here.",
-	},
+	{key = "Home", title = "Home", description = "Your editable game control panel is ready."},
+	{key = "Players", title = "Players", description = "Add your own player tools here."},
+	{key = "NPCs", title = "NPCs", description = "Add your own NPC features here."},
+	{key = "Pets", title = "Pets", description = "Add your own pet features here."},
+	{key = "Settings", title = "Settings", description = "Add your own settings here."},
 }
 
 local pages = {}
@@ -242,7 +182,6 @@ local function makeActionButton(parent, text, position, size, baseColor, callbac
 		TextSize = 12,
 		TextColor3 = COLORS.text,
 	}, parent)
-
 	addCorner(action, 9)
 
 	action.MouseEnter:Connect(function()
@@ -250,30 +189,21 @@ local function makeActionButton(parent, text, position, size, baseColor, callbac
 			BackgroundColor3 = baseColor:Lerp(Color3.new(1, 1, 1), 0.08),
 		}):Play()
 	end)
-
 	action.MouseLeave:Connect(function()
-		TweenService:Create(action, TweenInfo.new(0.12), {
-			BackgroundColor3 = baseColor,
-		}):Play()
+		TweenService:Create(action, TweenInfo.new(0.12), {BackgroundColor3 = baseColor}):Play()
 	end)
-
 	action.Activated:Connect(callback)
 	return action
 end
 
 local function selectSection(sectionName)
 	selectedSection = sectionName
-
 	for name, page in pairs(pages) do
 		page.Visible = name == sectionName
 	end
-
 	for name, button in pairs(navButtons) do
-		button.BackgroundColor3 =
-			name == sectionName and COLORS.panelLight or COLORS.panel
-
-		button.TextColor3 =
-			name == sectionName and COLORS.text or COLORS.muted
+		button.BackgroundColor3 = name == sectionName and COLORS.panelLight or COLORS.panel
+		button.TextColor3 = name == sectionName and COLORS.text or COLORS.muted
 	end
 end
 
@@ -284,82 +214,113 @@ local function makePage(section)
 		BackgroundTransparency = 1,
 		Visible = false,
 	}, content)
-
 	pages[section.key] = page
 
-	addLabel(
-		page,
-		section.title,
-		UDim2.fromOffset(26, 22),
-		UDim2.new(1, -52, 0, 34),
-		22,
-		COLORS.text,
-		Enum.Font.GothamBold
-	)
-
-	addLabel(
-		page,
-		section.description,
-		UDim2.fromOffset(27, 56),
-		UDim2.new(1, -54, 0, 26),
-		12,
-		COLORS.muted
-	)
+	addLabel(page, section.title, UDim2.fromOffset(26, 22), UDim2.new(1, -52, 0, 34), 22, COLORS.text, Enum.Font.GothamBold)
+	addLabel(page, section.description, UDim2.fromOffset(27, 56), UDim2.new(1, -54, 0, 26), 12, COLORS.muted)
 
 	local card = create("Frame", {
 		Position = UDim2.fromOffset(26, 104),
-		Size = UDim2.new(1, -52, 0, 164),
+		Size = UDim2.new(1, -52, 0, section.key == "Players" and 258 or 164),
 		BackgroundColor3 = COLORS.panel,
 		BorderSizePixel = 0,
 	}, page)
-
 	addCorner(card, 13)
 	addStroke(card, COLORS.border, 0.3)
 
-	addLabel(
-		card,
-		"FEATURE PLACEHOLDER",
-		UDim2.fromOffset(17, 13),
-		UDim2.new(1, -34, 0, 19),
-		10,
-		COLORS.cyan,
-		Enum.Font.GothamBold
-	)
+	if section.key == "Players" then
+		addLabel(card, "SPAWN A PLAYER AVATAR", UDim2.fromOffset(17, 13), UDim2.new(1, -34, 0, 19), 10, COLORS.cyan, Enum.Font.GothamBold)
+		addLabel(card, "Enter a Roblox username, or create a randomized avatar.", UDim2.fromOffset(17, 36), UDim2.new(1, -34, 0, 27), 12, COLORS.text)
 
-	addLabel(
-		card,
-		"This section is ready for the functions you choose to add.",
-		UDim2.fromOffset(17, 40),
-		UDim2.new(1, -34, 0, 42),
-		13,
-		COLORS.text
-	)
+		local usernameBox = create("TextBox", {
+			Name = "RobloxUsername",
+			Position = UDim2.fromOffset(17, 72),
+			Size = UDim2.new(1, -34, 0, 40),
+			BackgroundColor3 = COLORS.panelLight,
+			BorderSizePixel = 0,
+			ClearTextOnFocus = false,
+			Font = Enum.Font.Gotham,
+			PlaceholderText = "Roblox username",
+			PlaceholderColor3 = COLORS.muted,
+			Text = "",
+			TextColor3 = COLORS.text,
+			TextSize = 12,
+			TextXAlignment = Enum.TextXAlignment.Left,
+		}, card)
+		addCorner(usernameBox, 9)
+		addStroke(usernameBox, COLORS.border, 0.3)
+		create("UIPadding", {
+			PaddingLeft = UDim.new(0, 12),
+			PaddingRight = UDim.new(0, 12),
+		}, usernameBox)
 
-	local status = addLabel(
-		card,
-		"No action connected yet.",
-		UDim2.fromOffset(17, 91),
-		UDim2.new(1, -34, 0, 22),
-		11,
-		COLORS.muted
-	)
+		local status = addLabel(card, "Test avatars spawn behind you in your own game.", UDim2.fromOffset(17, 207), UDim2.new(1, -34, 0, 36), 10, COLORS.muted)
 
-	makeActionButton(
-		card,
-		"Example button",
-		UDim2.fromOffset(17, 122),
-		UDim2.fromOffset(145, 30),
-		COLORS.purple,
-		function()
-			status.Text = "Button works. Replace this callback with your game feature."
+		local function requestAvatar(action, username)
+			if not avatarRemote then
+				status.Text = "Add the server spawner script to ServerScriptService."
+				return
+			end
+
+			status.Text = "Loading avatar..."
+			status.TextColor3 = COLORS.muted
+			local callOk, accepted, result = pcall(function()
+				return avatarRemote:InvokeServer(action, username)
+			end)
+
+			if not callOk then
+				status.Text = "The server did not respond."
+				return
+			end
+			if not accepted then
+				status.Text = tostring(result)
+				return
+			end
+
+			if action == "Clear" then
+				status.Text = ("Cleared %d spawned avatar(s)."):format(result.removed)
+			else
+				status.Text = "Spawned " .. tostring(result.name) .. " behind you."
+			end
 			status.TextColor3 = COLORS.cyan
 		end
-	)
+
+		makeActionButton(card, "Spawn this user", UDim2.fromOffset(17, 124), UDim2.new(0.5, -22, 0, 34), COLORS.purple, function()
+			local username = string.match(usernameBox.Text, "^%s*(.-)%s*$")
+			if not username or username == "" then
+				status.Text = "Enter a Roblox username first."
+				return
+			end
+			requestAvatar("SpawnUser", username)
+		end)
+
+		makeActionButton(card, "Spawn random avatar", UDim2.new(0.5, 5, 0, 124), UDim2.new(0.5, -22, 0, 34), COLORS.panelLight, function()
+			requestAvatar("SpawnRandom")
+		end)
+
+		makeActionButton(card, "Clear my spawned avatars", UDim2.fromOffset(17, 166), UDim2.fromOffset(190, 30), Color3.fromRGB(102, 54, 74), function()
+			requestAvatar("Clear")
+		end)
+
+		usernameBox.FocusLost:Connect(function(enterPressed)
+			if enterPressed and usernameBox.Text ~= "" then
+				requestAvatar("SpawnUser", usernameBox.Text)
+			end
+		end)
+	else
+		addLabel(card, "FEATURE PLACEHOLDER", UDim2.fromOffset(17, 13), UDim2.new(1, -34, 0, 19), 10, COLORS.cyan, Enum.Font.GothamBold)
+		addLabel(card, "This section is ready for the functions you choose to add.", UDim2.fromOffset(17, 40), UDim2.new(1, -34, 0, 42), 13, COLORS.text)
+
+		local status = addLabel(card, "No action connected yet.", UDim2.fromOffset(17, 91), UDim2.new(1, -34, 0, 22), 11, COLORS.muted)
+		makeActionButton(card, "Example button", UDim2.fromOffset(17, 122), UDim2.fromOffset(145, 30), COLORS.purple, function()
+			status.Text = "Button works. Replace this callback with your game feature."
+			status.TextColor3 = COLORS.cyan
+		end)
+	end
 end
 
 for index, section in ipairs(sectionData) do
 	makePage(section)
-
 	local nav = create("TextButton", {
 		Name = section.key .. "Button",
 		Position = UDim2.fromOffset(10, 48 + ((index - 1) * 45)),
@@ -373,24 +334,14 @@ for index, section in ipairs(sectionData) do
 		TextColor3 = COLORS.muted,
 		TextXAlignment = Enum.TextXAlignment.Left,
 	}, sidebar)
-
 	addCorner(nav, 9)
 	navButtons[section.key] = nav
-
 	nav.Activated:Connect(function()
 		selectSection(section.key)
 	end)
 end
 
-local footer = addLabel(
-	sidebar,
-	"Standalone UI base. Connect only to systems in your own game.",
-	UDim2.new(0, 14, 1, -16),
-	UDim2.new(1, -28, 0, 58),
-	10,
-	COLORS.muted
-)
-
+local footer = addLabel(sidebar, "Standalone UI base. Connect only to systems in your own game.", UDim2.new(0, 14, 1, -16), UDim2.new(1, -28, 0, 58), 10, COLORS.muted)
 footer.AnchorPoint = Vector2.new(0, 1)
 
 selectSection(selectedSection)
