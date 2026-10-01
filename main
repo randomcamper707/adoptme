@@ -1,15 +1,14 @@
--- Editable UI and player-avatar controls for your own Roblox experience.
--- Place this LocalScript in StarterPlayer > StarterPlayerScripts and
--- npc_spawner.server.lua in ServerScriptService.
+-- Single-script UI and local avatar previews for your own Roblox experience.
+-- Place this LocalScript in StarterPlayer > StarterPlayerScripts.
+-- Preview avatars are created on this client and are not replicated to other players.
 
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
-local avatarRemote = ReplicatedStorage:WaitForChild("OwnGameAvatarSpawner", 15)
 
 local oldGui = playerGui:FindFirstChild("EditableGamePanel")
 if oldGui then
@@ -61,6 +60,191 @@ local function addLabel(parent, text, position, size, fontSize, color, font)
 		TextYAlignment = Enum.TextYAlignment.Center,
 		TextWrapped = true,
 	}, parent)
+end
+
+local MAX_PREVIEWS = 6
+local SPAWN_COOLDOWN = 1
+local FIVE_INCHES_IN_STUDS = 5 / 11.02
+
+-- Add your UserId here if your own test experience is group-owned.
+-- Studio and user-owned experiences are allowed automatically.
+local LOCAL_ALLOWED_USER_IDS = {}
+
+-- Optional Roblox UserIds to include in the random-avatar pool.
+-- Players in the current server are also included automatically.
+local RANDOM_USER_IDS = {}
+
+local rng = Random.new()
+local localPreviews = {}
+local lastSpawnAt = 0
+local isSpawning = false
+
+local function canUseLocalPreview()
+	if RunService:IsStudio() then
+		return true
+	end
+	if game.CreatorType == Enum.CreatorType.User and game.CreatorId == player.UserId then
+		return true
+	end
+	return table.find(LOCAL_ALLOWED_USER_IDS, player.UserId) ~= nil
+end
+
+local function randomDescription()
+	local skinTones = {
+		Color3.fromRGB(255, 224, 189),
+		Color3.fromRGB(241, 194, 125),
+		Color3.fromRGB(198, 134, 66),
+		Color3.fromRGB(141, 85, 36),
+		Color3.fromRGB(255, 219, 172),
+	}
+	local tone = skinTones[rng:NextInteger(1, #skinTones)]
+	local description = Instance.new("HumanoidDescription")
+	description.HeadColor = tone
+	description.TorsoColor = tone
+	description.LeftArmColor = tone
+	description.RightArmColor = tone
+	description.LeftLegColor = tone
+	description.RightLegColor = tone
+	description.HeightScale = rng:NextNumber(0.9, 1.08)
+	description.WidthScale = rng:NextNumber(0.85, 1.08)
+	description.DepthScale = rng:NextNumber(0.85, 1.08)
+	description.HeadScale = rng:NextNumber(0.92, 1.12)
+	description.BodyTypeScale = rng:NextNumber(0, 0.6)
+	description.ProportionScale = rng:NextNumber(0, 0.6)
+	return description
+end
+
+local function getActivePreviews()
+	local active = {}
+	for index = #localPreviews, 1, -1 do
+		local model = localPreviews[index]
+		if model and model.Parent then
+			table.insert(active, model)
+		else
+			table.remove(localPreviews, index)
+		end
+	end
+	return active
+end
+
+local function clearLocalPreviews()
+	local active = getActivePreviews()
+	for _, model in ipairs(active) do
+		model:Destroy()
+	end
+	table.clear(localPreviews)
+	return #active
+end
+
+local function createLocalPreview(description, displayName, sourceUserId)
+	local createOk, modelOrError = pcall(function()
+		return Players:CreateHumanoidModelFromDescriptionAsync(description, Enum.HumanoidRigType.R15)
+	end)
+	description:Destroy()
+	if not createOk then
+		error(tostring(modelOrError))
+	end
+
+	local model = modelOrError
+	local humanoid = model:FindFirstChildOfClass("Humanoid")
+	local root = model:FindFirstChild("HumanoidRootPart")
+	if not humanoid or not root then
+		model:Destroy()
+		error("Roblox returned an incomplete avatar model.")
+	end
+
+	local character = player.Character or player.CharacterAdded:Wait()
+	local playerRoot = character:WaitForChild("HumanoidRootPart", 10)
+	if not playerRoot then
+		model:Destroy()
+		error("Your character is still loading. Try again in a moment.")
+	end
+
+	model.Name = "LocalAvatarPreview"
+	model:SetAttribute("LocalAvatarPreview", true)
+	model:SetAttribute("PreviewName", displayName)
+	if sourceUserId then
+		model:SetAttribute("SourceUserId", sourceUserId)
+	end
+	humanoid.DisplayName = displayName
+	humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.Viewer
+	humanoid.HealthDisplayType = Enum.HumanoidHealthDisplayType.AlwaysOff
+
+	for _, item in ipairs(model:GetDescendants()) do
+		if item:IsA("BasePart") then
+			item.CanCollide = false
+			item.CanTouch = false
+			item.CanQuery = false
+		end
+	end
+
+	model.Parent = workspace
+	model:PivotTo(playerRoot.CFrame)
+	local _, playerBounds = character:GetBoundingBox()
+	local _, modelBounds = model:GetBoundingBox()
+	local rearOffset = (playerBounds.Z + modelBounds.Z) / 2 + FIVE_INCHES_IN_STUDS
+	model:PivotTo(playerRoot.CFrame * CFrame.new(0, 0, rearOffset))
+	root.Anchored = true
+
+	table.insert(localPreviews, model)
+	return displayName
+end
+
+local function getRandomUserIds()
+	local ids = {}
+	local seen = {}
+
+	local function addId(userId)
+		if typeof(userId) == "number" and userId > 0 and not seen[userId] then
+			seen[userId] = true
+			table.insert(ids, userId)
+		end
+	end
+
+	for _, userId in ipairs(RANDOM_USER_IDS) do
+		addId(userId)
+	end
+	for _, otherPlayer in ipairs(Players:GetPlayers()) do
+		if otherPlayer ~= player then
+			addId(otherPlayer.UserId)
+		end
+	end
+
+	return ids
+end
+
+local function spawnRandomPreview()
+	local ids = getRandomUserIds()
+	for _ = 1, math.min(3, #ids) do
+		local userId = table.remove(ids, rng:NextInteger(1, #ids))
+		local avatarOk, description = pcall(function()
+			return Players:GetHumanoidDescriptionFromUserIdAsync(userId)
+		end)
+		if avatarOk and description then
+			local nameOk, name = pcall(function()
+				return Players:GetNameFromUserIdAsync(userId)
+			end)
+			local previewOk, previewName = pcall(function()
+				return createLocalPreview(description, nameOk and name or "Random Player", userId)
+			end)
+			if previewOk then
+				return previewName
+			end
+		end
+	end
+
+	return createLocalPreview(randomDescription(), "Random Avatar")
+end
+
+local function spawnNamedPreview(username)
+	local cleanName = string.match(username, "^%s*(.-)%s*$") or ""
+	if #cleanName < 3 or #cleanName > 20 or not string.match(cleanName, "^[%w_]+$") then
+		error("Enter a valid Roblox username.")
+	end
+
+	local userId = Players:GetUserIdFromNameAsync(cleanName)
+	local description = Players:GetHumanoidDescriptionFromUserIdAsync(userId)
+	return createLocalPreview(description, cleanName, userId)
 end
 
 local gui = create("ScreenGui", {
@@ -334,34 +518,56 @@ local function makePage(section)
 			PaddingRight = UDim.new(0, 12),
 		}, usernameBox)
 
-		local status = addLabel(card, "Test avatars spawn behind you in your own game.", UDim2.fromOffset(17, 207), UDim2.new(1, -34, 0, 36), 10, COLORS.muted)
+		local status = addLabel(card, "Avatar previews appear behind you and are visible only to you.", UDim2.fromOffset(17, 207), UDim2.new(1, -34, 0, 36), 10, COLORS.muted)
 
 		local function requestAvatar(action, username)
-			if not avatarRemote then
-				status.Text = "Add the server spawner script to ServerScriptService."
+			if action == "Clear" then
+				status.Text = ("Cleared %d local preview avatar(s)."):format(clearLocalPreviews())
+				status.TextColor3 = COLORS.cyan
+				return
+			end
+			if not canUseLocalPreview() then
+				status.Text = "Local previews are enabled in Studio or your own experience."
+				status.TextColor3 = COLORS.muted
+				return
+			end
+			if isSpawning then
 				return
 			end
 
-			status.Text = "Loading avatar..."
+			if #getActivePreviews() >= MAX_PREVIEWS then
+				status.Text = ("Clear a preview first; the limit is %d avatars."):format(MAX_PREVIEWS)
+				status.TextColor3 = COLORS.muted
+				return
+			end
+			if os.clock() - lastSpawnAt < SPAWN_COOLDOWN then
+				status.Text = "Wait a moment before spawning another avatar."
+				status.TextColor3 = COLORS.muted
+				return
+			end
+
+			isSpawning = true
+			lastSpawnAt = os.clock()
+			status.Text = action == "SpawnRandom" and "Creating a random avatar locally..." or "Loading Roblox avatar locally..."
 			status.TextColor3 = COLORS.muted
-			local callOk, accepted, result = pcall(function()
-				return avatarRemote:InvokeServer(action, username)
+			local callOk, result = pcall(function()
+				if action == "SpawnUser" then
+					return spawnNamedPreview(username or "")
+				elseif action == "SpawnRandom" then
+					return spawnRandomPreview()
+				end
+				error("Unknown avatar action.")
 			end)
+			isSpawning = false
 
 			if not callOk then
-				status.Text = "The server did not respond."
-				return
-			end
-			if not accepted then
-				status.Text = tostring(result)
+				warn("[LocalAvatarPreview] " .. tostring(result))
+				status.Text = "Couldn't load avatar: " .. string.sub(string.gsub(tostring(result), "[\r\n]+", " "), 1, 94)
+				status.TextColor3 = COLORS.muted
 				return
 			end
 
-			if action == "Clear" then
-				status.Text = ("Cleared %d spawned avatar(s)."):format(result.removed)
-			else
-				status.Text = "Spawned " .. tostring(result.name) .. " behind you."
-			end
+			status.Text = "Spawned " .. tostring(result) .. " behind you (only visible to you)."
 			status.TextColor3 = COLORS.cyan
 		end
 
