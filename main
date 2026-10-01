@@ -252,6 +252,7 @@ for index, roleName in ipairs(roleNames) do
         selectedRole = roleName
         updateRoleButtons()
     end)
+    button.MouseLeave:Connect(updateRoleButtons)
 end
 updateRoleButtons()
 
