@@ -538,12 +538,12 @@ local function showTradeRequest()
 	end
 
 	local header = modalLabel(paper, "🙂  Verified Friend",
-		UDim2.new(0.15, 0, 0, 5), UDim2.new(0.72, 0, 0, 40), 21,
+		UDim2.new(0.15, 0, 0, 17), UDim2.new(0.72, 0, 0, 34), 20,
 		Color3.fromRGB(54, 54, 54), false)
 	header.ZIndex = 3
 
 	local previewTag = modalLabel(paper, "TRADE PREVIEW",
-		UDim2.new(0.67, 0, 0, 11), UDim2.new(0.27, 0, 0, 22), 9,
+		UDim2.new(0.67, 0, 0, 2), UDim2.new(0.27, 0, 0, 14), 9,
 		Color3.fromRGB(121, 102, 42), true)
 	previewTag.ZIndex = 4
 
