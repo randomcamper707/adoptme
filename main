@@ -484,22 +484,161 @@ local function showTradeRequest()
 	if name == "" then name = "Your friend" end
 
 	local screen = makePreviewRoot()
-	local card = makePreviewCard(screen, 190)
 
-	modalLabel(card, "TRADE REQUEST PREVIEW",
-		UDim2.new(0, 12, 0, 12), UDim2.new(1, -24, 0, 25), 13,
-		Color3.fromRGB(91, 78, 34), true)
-	modalLabel(card, name .. " sent you a trade request",
-		UDim2.new(0.06, 0, 0, 50), UDim2.new(0.88, 0, 0, 50), 16,
-		Color3.fromRGB(48, 48, 48), true)
-	modalLabel(card, "Visual preview only",
-		UDim2.new(0.06, 0, 0, 101), UDim2.new(0.88, 0, 0, 20), 10,
-		Color3.fromRGB(105, 105, 105), false)
+	-- Paper card with a soft drop shadow.
+	local shadow = Instance.new("Frame")
+	shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+	shadow.Position = UDim2.new(0.5, 5, 0.5, 7)
+	shadow.Size = UDim2.new(0.90, 0, 0, 310)
+	shadow.BackgroundColor3 = Color3.fromRGB(20, 17, 22)
+	shadow.BackgroundTransparency = 0.48
+	shadow.BorderSizePixel = 0
+	shadow.Parent = screen
+	local shadowConstraint = Instance.new("UISizeConstraint")
+	shadowConstraint.MinSize = Vector2.new(300, 310)
+	shadowConstraint.MaxSize = Vector2.new(560, 310)
+	shadowConstraint.Parent = shadow
+	local shadowCorner = Instance.new("UICorner")
+	shadowCorner.CornerRadius = UDim.new(0, 16)
+	shadowCorner.Parent = shadow
 
-	local decline = modalButton(card, "Decline", Color3.fromRGB(202, 47, 60),
-		UDim2.new(0.16, 0, 1, -47), UDim2.new(0.31, 0, 0, 32))
-	local accept = modalButton(card, "Accept", Color3.fromRGB(58, 170, 84),
-		UDim2.new(0.53, 0, 1, -47), UDim2.new(0.31, 0, 0, 32))
+	local paper = Instance.new("Frame")
+	paper.AnchorPoint = Vector2.new(0.5, 0.5)
+	paper.Position = UDim2.fromScale(0.5, 0.5)
+	paper.Size = UDim2.new(0.90, 0, 0, 310)
+	paper.BackgroundColor3 = Color3.fromRGB(255, 254, 249)
+	paper.BorderSizePixel = 0
+	paper.ClipsDescendants = false
+	paper.Parent = screen
+
+	local paperConstraint = Instance.new("UISizeConstraint")
+	paperConstraint.MinSize = Vector2.new(300, 310)
+	paperConstraint.MaxSize = Vector2.new(560, 310)
+	paperConstraint.Parent = paper
+
+	local paperCorner = Instance.new("UICorner")
+	paperCorner.CornerRadius = UDim.new(0, 16)
+	paperCorner.Parent = paper
+
+	local paperStroke = Instance.new("UIStroke")
+	paperStroke.Color = Color3.fromRGB(226, 228, 224)
+	paperStroke.Thickness = 1
+	paperStroke.Parent = paper
+
+	-- Blue notebook rules behind the message.
+	for _, y in ipairs({58, 108, 158, 208, 258}) do
+		local rule = Instance.new("Frame")
+		rule.Position = UDim2.new(0, 0, 0, y)
+		rule.Size = UDim2.new(1, 0, 0, 2)
+		rule.BackgroundColor3 = Color3.fromRGB(137, 224, 239)
+		rule.BackgroundTransparency = 0.22
+		rule.BorderSizePixel = 0
+		rule.ZIndex = 2
+		rule.Parent = paper
+	end
+
+	local header = modalLabel(paper, "🙂  Verified Friend",
+		UDim2.new(0.15, 0, 0, 5), UDim2.new(0.72, 0, 0, 40), 21,
+		Color3.fromRGB(54, 54, 54), false)
+	header.ZIndex = 3
+
+	local previewTag = modalLabel(paper, "TRADE PREVIEW",
+		UDim2.new(0.67, 0, 0, 11), UDim2.new(0.27, 0, 0, 22), 9,
+		Color3.fromRGB(121, 102, 42), true)
+	previewTag.ZIndex = 4
+
+	local function messageLine(text, y, height, maxSize)
+		local label = modalLabel(paper, text,
+			UDim2.new(0.08, 0, 0, y), UDim2.new(0.84, 0, 0, height), maxSize,
+			Color3.fromRGB(48, 48, 48), true)
+		label.TextScaled = true
+		local limit = Instance.new("UITextSizeConstraint")
+		limit.MinTextSize = 18
+		limit.MaxTextSize = maxSize
+		limit.Parent = label
+		label.ZIndex = 3
+		return label
+	end
+
+	messageLine(name, 58, 48, 36)
+	messageLine("sent you a", 108, 48, 34)
+	messageLine("trade request", 158, 48, 34)
+
+	-- Decorative pushpins, kept inside the preview card.
+	local pinStem = Instance.new("Frame")
+	pinStem.AnchorPoint = Vector2.new(0.5, 0.5)
+	pinStem.Position = UDim2.new(0, 29, 0, 19)
+	pinStem.Size = UDim2.new(0, 13, 0, 37)
+	pinStem.Rotation = -42
+	pinStem.BackgroundColor3 = Color3.fromRGB(196, 35, 60)
+	pinStem.BorderSizePixel = 0
+	pinStem.ZIndex = 5
+	pinStem.Parent = paper
+	local stemCorner = Instance.new("UICorner")
+	stemCorner.CornerRadius = UDim.new(1, 0)
+	stemCorner.Parent = pinStem
+
+	local pinHead = Instance.new("Frame")
+	pinHead.Position = UDim2.new(0, -10, 0, -8)
+	pinHead.Size = UDim2.new(0, 39, 0, 39)
+	pinHead.BackgroundColor3 = Color3.fromRGB(226, 40, 66)
+	pinHead.BorderSizePixel = 0
+	pinHead.ZIndex = 6
+	pinHead.Parent = paper
+	local headCorner = Instance.new("UICorner")
+	headCorner.CornerRadius = UDim.new(1, 0)
+	headCorner.Parent = pinHead
+	local pinHighlight = Instance.new("Frame")
+	pinHighlight.Position = UDim2.new(0, 5, 0, 4)
+	pinHighlight.Size = UDim2.new(0, 22, 0, 22)
+	pinHighlight.BackgroundColor3 = Color3.fromRGB(255, 103, 120)
+	pinHighlight.BackgroundTransparency = 0.2
+	pinHighlight.BorderSizePixel = 0
+	pinHighlight.ZIndex = 7
+	pinHighlight.Parent = pinHead
+	local highlightCorner = Instance.new("UICorner")
+	highlightCorner.CornerRadius = UDim.new(1, 0)
+	highlightCorner.Parent = pinHighlight
+
+	local function requestButton(text, baseColor, shadeColor, x)
+		local underlay = Instance.new("Frame")
+		underlay.Position = UDim2.new(x, 0, 0, 246)
+		underlay.Size = UDim2.new(0.32, 0, 0, 48)
+		underlay.BackgroundColor3 = shadeColor
+		underlay.BorderSizePixel = 0
+		underlay.ZIndex = 3
+		underlay.Parent = paper
+		local underCorner = Instance.new("UICorner")
+		underCorner.CornerRadius = UDim.new(0, 10)
+		underCorner.Parent = underlay
+
+		local button = Instance.new("TextButton")
+		button.Position = UDim2.new(x, 0, 0, 241)
+		button.Size = UDim2.new(0.32, 0, 0, 48)
+		button.BackgroundColor3 = baseColor
+		button.BorderSizePixel = 0
+		button.AutoButtonColor = true
+		button.Font = Enum.Font.GothamBold
+		button.Text = text
+		button.TextColor3 = Color3.new(1, 1, 1)
+		button.TextSize = 22
+		button.ZIndex = 4
+		button.Parent = paper
+
+		local buttonCorner = Instance.new("UICorner")
+		buttonCorner.CornerRadius = UDim.new(0, 10)
+		buttonCorner.Parent = button
+		local buttonStroke = Instance.new("UIStroke")
+		buttonStroke.Color = shadeColor
+		buttonStroke.Thickness = 1
+		buttonStroke.Parent = button
+		return button
+	end
+
+	local decline = requestButton("Decline", Color3.fromRGB(227, 37, 57),
+		Color3.fromRGB(168, 25, 43), 0.12)
+	local accept = requestButton("Accept", Color3.fromRGB(65, 204, 83),
+		Color3.fromRGB(43, 155, 59), 0.56)
 
 	decline.Activated:Connect(function()
 		if activeTradePreview then activeTradePreview:Destroy() end
@@ -508,6 +647,5 @@ local function showTradeRequest()
 		showTradeWindow(name)
 	end)
 end
-
 startTradeButton.Activated:Connect(showTradeRequest)
 
