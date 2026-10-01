@@ -17,8 +17,9 @@ local FIVE_INCHES_IN_STUDS = 5 / 11.02
 -- Studio play tests are always permitted.
 local ALLOWED_USER_IDS = {}
 
--- Optional UserIds for the random-avatar button to choose between.
--- The button also includes other players in the current server.
+-- Optional UserIds for the random-player button to choose between.
+-- Other players in the current server are added automatically. If this list is
+-- empty and the server is solo, the button still builds a randomized R15 avatar.
 local RANDOM_USER_IDS = {}
 
 local rng = Random.new()
@@ -248,7 +249,8 @@ local function spawnForPlayer(player, action, value)
 		elseif action == "SpawnRandom" then
 			local ids = getRandomUserIds(player)
 			for attempt = 1, math.min(3, #ids) do
-				local userId = ids[rng:NextInteger(1, #ids)]
+				-- Remove each attempted id so a failed profile lookup isn't retried.
+				local userId = table.remove(ids, rng:NextInteger(1, #ids))
 				local avatarOk, description = pcall(function()
 					return Players:GetHumanoidDescriptionFromUserIdAsync(userId)
 				end)
@@ -269,7 +271,10 @@ local function spawnForPlayer(player, action, value)
 	state.pending -= 1
 	if not success then
 		warn("[OwnGameAvatarSpawner] " .. tostring(result))
-		return false, "Couldn't load that avatar. Check the username and try again."
+		if action == "SpawnRandom" then
+			return false, "Couldn't create a random avatar right now. Try again in a moment."
+		end
+		return false, "Couldn't load that user avatar. Check the username and try again."
 	end
 	return true, result
 end
